@@ -1,0 +1,104 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: docker-registry
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: longhorn-docker-registry-pvc
+  namespace: docker-registry
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 15Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry-deployment
+  namespace: docker-registry
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: lv-storage
+          mountPath: /var/lib/registry
+          subPath: registry
+      volumes:
+        - name: lv-storage
+          persistentVolumeClaim:
+            claimName: longhorn-docker-registry-pvc
+      nodeSelector:
+        node-type: worker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry-service
+  namespace: docker-registry
+spec:
+  selector:
+    app: registry
+  type: LoadBalancer
+  ports:
+    - name: docker-port
+      protocol: TCP
+      port: 5000
+      targetPort: 5000
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: docker-registry-cert
+  namespace: docker-registry
+spec:
+  secretName: docker-registry-tls-secret
+  duration: 2160h
+  renewBefore: 360h
+  dnsNames:
+  - registry.werewolves.fyi
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry-ingress
+  namespace: docker-registry
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  rules:
+  - host: registry.werewolves.fyi
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: registry-service
+              port:
+                number: 80
+  tls:
+  - hosts:
+    - registry.werewolves.fyi
+    secretName: docker-registry-tls-secret
