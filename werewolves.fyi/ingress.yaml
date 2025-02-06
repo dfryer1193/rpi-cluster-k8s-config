@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: werewolves-ingress
+spec:
+  rules:
+  - host: werewolves.fyi
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: werewolves-web
+              port:
+                number: 80

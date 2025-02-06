@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: werewolves-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: werewolves-fyi
+  template:
+    metadata:
+      labels:
+        app: werewolves-fyi
+    spec:
+      containers:
+      - name: werewolves-fyi
+        image: decahedra/werewolves.fyi:0.0.6
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+      imagePullSecrets:
+      - name: regcred
