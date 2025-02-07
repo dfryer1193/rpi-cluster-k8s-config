@@ -14,3 +14,7 @@ spec:
               name: werewolves-web
               port:
                 number: 80
+  tls:
+  - hosts:
+    - werewolves.fyi
+    secretName: werewolves-fyi-tls
