@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hook-dumper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hook-dumper
+  template:
+    metadata:
+      labels:
+        app: hook-dumper
+    spec:
+      containers:
+      - name: hook-dumper
+        image: decahedra/hook-dumper:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+      - name: regcred

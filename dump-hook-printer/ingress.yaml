@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hook-dumper-ingress
+spec:
+  rules:
+  - host: hooks.werewolves.fyi
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: hook-dumper
+              port:
+                number: 8080
