@@ -45,8 +45,6 @@ spec:
         - name: lv-storage
           persistentVolumeClaim:
             claimName: longhorn-docker-registry-pvc
-      nodeSelector:
-        node-type: worker
 ---
 apiVersion: v1
 kind: Service
