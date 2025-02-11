@@ -11,6 +11,6 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: hook-dumper
+              name: hook-dumper-web
               port:
                 number: 8080
