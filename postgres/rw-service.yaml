@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    cnpg.io/cluster: test-werewolves-cluster
-  name: test-werewolves-cluster-lb
+    cnpg.io/cluster: werewolves-data-cluster
+  name: werewolves-data-cluster-lb
 spec:
   allocateLoadBalancerNodePorts: true
   ports:
@@ -12,7 +12,7 @@ spec:
     protocol: TCP
     targetPort: 5432
   selector:
-    cnpg.io/cluster: test-werewolves-cluster
+    cnpg.io/cluster: werewolves-data-cluster
     cnpg.io/instanceRole: primary
   type: LoadBalancer
 status:
