@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
       - name: werewolves-fyi
-        image: decahedra/werewolves.fyi:0.0.9
+        image: registry.werewolves.fyi/werewolves.fyi:v0.0.11
         ports:
         - containerPort: 80
         - containerPort: 443
       imagePullSecrets:
-      - name: regcred
+      - name: werewolves-registry-creds
