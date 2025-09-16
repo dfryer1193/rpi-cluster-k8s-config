@@ -30,8 +30,8 @@ spec:
     spec:
       containers:
       - name: lidarr
-        image: linuxserver/lidarr:2.12.4
-        imagePullPolicy: Always
+        image: blampe/lidarr:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8686
         env:
