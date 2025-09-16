@@ -12,7 +12,7 @@ TMPDIR=$(mktemp -d)
 kubectl get secret $SECRET_NAME -n $NAMESPACE -o jsonpath="{.data.htpasswd}" | \
 	base64 --decode > $TMPDIR/htpasswd
 
-htpasswd -b $TMPDIR/htpasswd $NEW_USER $NEW_PASSWORD
+htpasswd -Bb $TMPDIR/htpasswd $NEW_USER $NEW_PASSWORD
 
 kubectl create secret generic $SECRET_NAME \
 	--from-file=htpasswd=$TMPDIR/htpasswd \
@@ -23,7 +23,7 @@ kubectl create secret generic $SECRET_NAME \
 
 rm -rf $TMPDIR
 
-kubectl rollout restart deployment/docker-registry -n $NAMESPACE
+kubectl rollout restart deployment/registry-deployment -n $NAMESPACE
 
 echo "User $NEW_USER added to registry"
 echo "Log in with: docker login -u $NEW_USER"
