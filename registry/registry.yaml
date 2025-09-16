@@ -23,7 +23,7 @@ metadata:
   name: registry-deployment
   namespace: docker-registry
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: registry
@@ -56,7 +56,7 @@ spec:
         - name: REGISTRY_HTTP_ADDR
           value: "0.0.0.0:5000"
         - name: REGISTRY_HTTP_HEADERS
-          value: "{'X-Forwarded-Proto': ['https']}"
+          value: '{"X-Forwarded-Proto": ["https"]}'
         - name: REGISTRY_AUTH_HTPASSWD_REALM
           value: "Registry Realm"
         - name: REGISTRY_AUTH_HTPASSWD_PATH
