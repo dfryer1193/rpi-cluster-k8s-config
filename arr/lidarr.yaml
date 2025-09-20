@@ -31,7 +31,7 @@ spec:
       containers:
       - name: lidarr
         image: blampe/lidarr:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 8686
         env:
