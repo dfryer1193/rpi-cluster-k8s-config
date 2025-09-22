@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lidarr-config-rwx-pvc
+  namespace: arr
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lidarr
+  namespace: arr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+    spec:
+      containers:
+      - name: lidarr
+        image: blampe/lidarr:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8686
+        env:
+        - name: PUID
+          value: "1002"
+        - name: PGID
+          value: "1002"
+        - name: TZ
+          value: "America/New_York"
+        volumeMounts:
+        - name: downloads
+          mountPath: /downloads
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: porygon-pvc
+      - name: config
+        persistentVolumeClaim:
+          claimName: lidarr-config-rwx-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr
+  namespace: arr
+spec:
+  selector:
+    app: lidarr
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8686
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lidarr
+  namespace: arr
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  tls:
+  - hosts:
+      - lidarr.pokedex.lan
+    secretName: lidarr-tls
+  rules:
+  - host: lidarr.pokedex.lan
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lidarr
+            port:
+              number: 80

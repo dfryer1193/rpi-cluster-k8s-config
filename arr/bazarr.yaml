@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config-rwx-pvc
+  namespace: arr
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: arr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+    spec:
+      containers:
+      - name: bazarr
+        image: linuxserver/bazarr:1.5.2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6767
+        env:
+        - name: PUID
+          value: "1002"
+        - name: PGID
+          value: "1002"
+        - name: TZ
+          value: "America/New_York"
+        volumeMounts:
+        - name: downloads
+          mountPath: /downloads
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: porygon-pvc
+      - name: config
+        persistentVolumeClaim:
+          claimName: bazarr-config-rwx-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bazarr
+  namespace: arr
+spec:
+  selector:
+    app: bazarr
+  ports:
+  - name: http
+    port: 80
+    targetPort: 6767
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bazarr
+  namespace: arr
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  tls:
+  - hosts:
+      - bazarr.pokedex.lan
+    secretName: bazarr-tls
+  rules:
+  - host: bazarr.pokedex.lan
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bazarr
+            port:
+              number: 80

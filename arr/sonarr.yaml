@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config-rwx-pvc
+  namespace: arr
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: arr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      containers:
+      - name: sonarr
+        image: linuxserver/sonarr:4.0.15
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8989
+        env:
+        - name: PUID
+          value: "1002"
+        - name: PGID
+          value: "1002"
+        - name: TZ
+          value: "America/New_York"
+        volumeMounts:
+        - name: downloads
+          mountPath: /downloads
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: porygon-pvc
+      - name: config
+        persistentVolumeClaim:
+          claimName: sonarr-config-rwx-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr
+  namespace: arr
+spec:
+  selector:
+    app: sonarr
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8989
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr
+  namespace: arr
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  tls:
+  - hosts:
+      - sonarr.pokedex.lan
+    secretName: sonarr-tls
+  rules:
+  - host: sonarr.pokedex.lan
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sonarr
+            port:
+              number: 80

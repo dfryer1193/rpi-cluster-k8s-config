@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arr
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: porygon-pv
+  namespace: arr
+spec:
+  capacity:
+    storage: 1Gi # Arbitrary
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.86.77
+    path: /data/media
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: porygon-pvc
+  namespace: arr
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi # Arbitrary
+  volumeName: porygon-pv
+  storageClassName: ""
