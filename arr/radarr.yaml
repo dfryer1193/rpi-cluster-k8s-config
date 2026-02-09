@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: radarr
-        image: linuxserver/radarr:5.27.5
+        image: linuxserver/radarr:6.0.4
         imagePullPolicy: Always
         ports:
         - containerPort: 7878
